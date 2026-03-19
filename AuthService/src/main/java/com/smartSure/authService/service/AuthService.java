@@ -4,9 +4,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.smartSure.authService.dto.AuthResponseDto;
-import com.smartSure.authService.dto.LoginRequestDto;
-import com.smartSure.authService.dto.RegisterRequestDto;
+import com.smartSure.authService.dto.auth.AuthResponseDto;
+import com.smartSure.authService.dto.auth.LoginRequestDto;
+import com.smartSure.authService.dto.auth.RegisterRequestDto;
 import com.smartSure.authService.entity.Role;
 import com.smartSure.authService.entity.User;
 import com.smartSure.authService.repository.UserRepository;
@@ -46,7 +46,8 @@ public class AuthService {
 			throw new RuntimeException("Invalid credentials");
 		}
 		
-		String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+//		String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+		String token = jwtUtil.generateToken(user.getUserId(), user.getRole().name());
 		return new AuthResponseDto(token, user.getEmail(), user.getRole().name());
 	}
 }

@@ -2,6 +2,7 @@ package com.smartSure.ApiGatewaySmartSure.security;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,10 +21,18 @@ import reactor.core.publisher.Mono;
 public class JwtAuthFilter implements WebFilter {
 
     private final JwtUtil jwtUtil;
+    
+    @Value("${internal.secret}")
+    private String internalSecret;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-
+    	
+    	String path = exchange.getRequest().getURI().getPath();
+    	if (path.startsWith("/api/auth")) {
+    	    return chain.filter(exchange);
+    	}
+    	
         String header = exchange.getRequest()
                 .getHeaders()
                 .getFirst(HttpHeaders.AUTHORIZATION);
@@ -34,17 +43,26 @@ public class JwtAuthFilter implements WebFilter {
 
             if (jwtUtil.validateToken(token)) {
 
-                String email = jwtUtil.extractEmail(token);
+                Long userIdLong = jwtUtil.extractUserIdAsLong(token);
+                String userId = String.valueOf(userIdLong);
                 String role = jwtUtil.extractRole(token);
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
-                                email,
+                                userIdLong,
                                 null,
                                 List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );
 
-                return chain.filter(exchange)
+                ServerWebExchange mutatedExchange = exchange.mutate()
+                        .request(builder -> builder
+                                .header("X-User-Id", userId)
+                                .header("X-User-Role", role)
+                                .header("X-Internal-Secret", internalSecret)
+                        )
+                        .build();
+
+                return chain.filter(mutatedExchange)
                         .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth));
             }
         }

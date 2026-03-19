@@ -11,7 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.smartSure.authService.security.JwtAuthFilter;
+import com.smartSure.authService.security.HeaderAuthenticationFilter;
+import com.smartSure.authService.security.InternalRequestFilter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,7 +22,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 	
-	private final JwtAuthFilter jwtAuthFilter;
+	private final InternalRequestFilter internalRequestFilter;
+	private final HeaderAuthenticationFilter headerAuthenticationFilter;
 	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -34,8 +36,9 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/swagger-ui.html"
                 ).permitAll()
-		        .anyRequest().authenticated())
-		.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+		        .anyRequest().permitAll())
+		.addFilterBefore(internalRequestFilter, UsernamePasswordAuthenticationFilter.class)
+		.addFilterAfter(headerAuthenticationFilter, InternalRequestFilter.class);
 		
 		return http.build();
 	}

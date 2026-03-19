@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.smartSure.authService.dto.AuthResponseDto;
-import com.smartSure.authService.dto.LoginRequestDto;
-import com.smartSure.authService.dto.RegisterRequestDto;
+import com.smartSure.authService.dto.auth.AuthResponseDto;
+import com.smartSure.authService.dto.auth.LoginRequestDto;
+import com.smartSure.authService.dto.auth.RegisterRequestDto;
 import com.smartSure.authService.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;

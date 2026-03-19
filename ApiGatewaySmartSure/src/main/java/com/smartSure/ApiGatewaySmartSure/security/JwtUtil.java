@@ -24,8 +24,14 @@ public class JwtUtil {
 		return Keys.hmacShaKeyFor(secret.getBytes());
 	}
 	
-	public String generateToken(String email, String role) {
-		return Jwts.builder().subject(email).claim("role", role)
+//	public String generateToken(String email, String role) {
+//		return Jwts.builder().subject(email).claim("role", role)
+//				.issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + expiration))
+//				.signWith(getSigningKey()).compact();
+//	}
+	
+	public String generateToken(Long userId, String role) {
+		return Jwts.builder().subject(String.valueOf(userId)).claim("role", role)
 				.issuedAt(new Date()).expiration(new Date(System.currentTimeMillis() + expiration))
 				.signWith(getSigningKey()).compact();
 	}
@@ -35,8 +41,16 @@ public class JwtUtil {
 				.build().parseSignedClaims(token).getPayload();
 	}
 	
-	public String extractEmail(String token) {
-		return getClaims(token).getSubject();
+//	public String extractEmail(String token) {
+//		return getClaims(token).getSubject();
+//	}
+	
+	public String extractUserId(String token) {
+	    return getClaims(token).getSubject();
+	}
+
+	public Long extractUserIdAsLong(String token) {
+	    return Long.parseLong(getClaims(token).getSubject());
 	}
 	
 	public String extractRole(String token) {

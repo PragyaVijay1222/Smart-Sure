@@ -3,8 +3,8 @@ package com.smartSure.authService.service;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.smartSure.authService.dto.AddressRequestDto;
-import com.smartSure.authService.dto.AddressResponseDto;
+import com.smartSure.authService.dto.address.AddressRequestDto;
+import com.smartSure.authService.dto.address.AddressResponseDto;
 import com.smartSure.authService.entity.Address;
 import com.smartSure.authService.entity.User;
 import com.smartSure.authService.exception.AddressNotFoundException;

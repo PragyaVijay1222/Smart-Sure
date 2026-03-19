@@ -3,8 +3,8 @@ package com.smartSure.authService.service;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import com.smartSure.authService.dto.UserRequestDto;
-import com.smartSure.authService.dto.UserResponseDto;
+import com.smartSure.authService.dto.user.UserRequestDto;
+import com.smartSure.authService.dto.user.UserResponseDto;
 import com.smartSure.authService.entity.User;
 import com.smartSure.authService.exception.UserNotFoundException;
 import com.smartSure.authService.repository.UserRepository;

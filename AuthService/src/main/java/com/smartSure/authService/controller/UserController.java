@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.smartSure.authService.dto.AddressRequestDto;
-import com.smartSure.authService.dto.AddressResponseDto;
-import com.smartSure.authService.dto.UserRequestDto;
-import com.smartSure.authService.dto.UserResponseDto;
+import com.smartSure.authService.dto.address.AddressRequestDto;
+import com.smartSure.authService.dto.address.AddressResponseDto;
+import com.smartSure.authService.dto.user.UserRequestDto;
+import com.smartSure.authService.dto.user.UserResponseDto;
 import com.smartSure.authService.service.AddressService;
 import com.smartSure.authService.service.UserService;
 
@@ -23,6 +23,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.web.bind.annotation.RequestBody;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +36,14 @@ public class UserController {
 	
 	private final UserService service;
 	private final AddressService addService;
+	
+	@GetMapping("/profile")
+	public String getProfile(HttpServletRequest request) {
+	    String userId = request.getHeader("X-User-Id");
+	    String role = request.getHeader("X-User-Role");
+
+	    return "UserId: " + userId + ", Role: " + role;
+	}
 	
 	@PostMapping("/addInfo")
 	@Operation(summary = "Adding information", description="Adding information to registered user row")
