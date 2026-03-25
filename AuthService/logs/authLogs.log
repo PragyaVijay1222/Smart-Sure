@@ -1,0 +1,2 @@
+2026-03-26 00:00:23 INFO  [69c429bf926ec0271a7bcf2ec6ecb3d2] AUTH START → AuthService.login(..)
+2026-03-26 00:00:23 INFO  [69c429bf926ec0271a7bcf2ec6ecb3d2] AUTH END → AuthService.login(..) | Time: 383 ms

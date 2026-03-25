@@ -18,10 +18,9 @@ public class UserRequestDto {
 	@Email
 	@NotBlank(message="Email should not be blank")
 	private String email;
-	
-	@Size(min=8, message="Minimum length of password should be 8")
-	@NotBlank(message="Password is needed")
-	private String password;
+//	@Size(min=8, message="Minimum length of password should be 8")
+//	@NotBlank(message="Password is needed")
+//	private String password;
 	
 	@Min(value = 10, message="Length of the phone number is 10")
 	private Long phone;
