@@ -78,9 +78,9 @@ public class UserController {
 	@DeleteMapping("/delete/{userId}")
 	@Operation(summary = "Delete User", description="Removing exixting user from database")
 	@ApiResponse(responseCode = "200", description = "User removed successfully")
-	public ResponseEntity<UserResponseDto> deleteUser(@PathVariable Long id){
+	public ResponseEntity<UserResponseDto> deleteUser(@PathVariable Long userId){
 		
-		UserResponseDto resDto = service.delete(id);
+		UserResponseDto resDto = service.delete(userId);
 		
 		return ResponseEntity.status(HttpStatus.OK).body(resDto);
 	}

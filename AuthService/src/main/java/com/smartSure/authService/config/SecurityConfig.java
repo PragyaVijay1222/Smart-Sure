@@ -28,14 +28,18 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
 		http.csrf(csrf -> csrf.disable())
+		.httpBasic(httpBasic -> httpBasic.disable()) 
+        .formLogin(form -> form.disable()) 
 		.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 		.authorizeHttpRequests(auth -> auth 
 				.requestMatchers(
                         "/api/auth/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
-                        "/swagger-ui.html"
+                        "/swagger-ui.html",
+                        "/actuator/health"
                 ).permitAll()
+				.requestMatchers("/actuator/**").permitAll()   //just for testing, will change later
 		        .anyRequest().permitAll())
 		.addFilterBefore(internalRequestFilter, UsernamePasswordAuthenticationFilter.class)
 		.addFilterAfter(headerAuthenticationFilter, InternalRequestFilter.class);

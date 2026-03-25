@@ -28,6 +28,11 @@ public class InternalRequestFilter extends OncePerRequestFilter {
             return;
         }
     	
+    	if (request.getRequestURI().startsWith("/actuator")) {
+    	    filterChain.doFilter(request, response);
+    	    return;
+    	}
+    	
         String secret = request.getHeader("X-Internal-Secret");
 
         if (!internalSecret.equals(secret)) {

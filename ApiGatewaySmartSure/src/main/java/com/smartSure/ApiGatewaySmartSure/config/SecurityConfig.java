@@ -30,8 +30,11 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> {}) 
+                .httpBasic(httpBasic -> httpBasic.disable()) 
+                .formLogin(form -> form.disable()) 
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .pathMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**", "/authService/actuator/**").permitAll()
+//                        .pathMatchers("/actuator/**").hasRole("ADMIN")
                         .anyExchange().authenticated()
                 )
                 .addFilterAt(jwtAuthFilter, SecurityWebFiltersOrder.AUTHENTICATION)
