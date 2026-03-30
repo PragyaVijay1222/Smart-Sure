@@ -1,6 +1,8 @@
 package com.smartSure.authService.service;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.smartSure.authService.dto.address.AddressRequestDto;
@@ -34,6 +36,7 @@ public class AddressService {
 		return modelMapper.map(address, AddressResponseDto.class);
 	}
 	
+	@CacheEvict(value = "address", key = "#userId")
 	public AddressResponseDto update(AddressRequestDto reqDto, Long userId) {
 		
 		User user = uRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exists"));
@@ -50,6 +53,7 @@ public class AddressService {
 		return modelMapper.map(address, AddressResponseDto.class);
 	}
 	
+	@Cacheable(value = "address", key = "#userId")
 	public AddressResponseDto get(Long userId) {
 		
 		User user = uRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exists"));
@@ -60,6 +64,7 @@ public class AddressService {
 		return modelMapper.map(address, AddressResponseDto.class);
 	}
 	
+	@CacheEvict(value = "address", key = "#userId")
 	public AddressResponseDto delete(Long userId) {
 		
 		User user = uRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("User does not exists"));

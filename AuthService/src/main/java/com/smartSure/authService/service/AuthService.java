@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import com.smartSure.authService.dto.auth.AuthResponseDto;
 import com.smartSure.authService.dto.auth.LoginRequestDto;
 import com.smartSure.authService.dto.auth.RegisterRequestDto;
+import com.smartSure.authService.dto.messagePayload.EmailMessage;
 import com.smartSure.authService.entity.Role;
 import com.smartSure.authService.entity.User;
+import com.smartSure.authService.messaging.EmailPublisher;
 import com.smartSure.authService.repository.UserRepository;
 import com.smartSure.authService.security.JwtUtil;
 
@@ -22,6 +24,7 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
 	private final ModelMapper modelMapper;
+	private final EmailPublisher emailPublisher;
 	
 	public String register(RegisterRequestDto request) {
 		User user = modelMapper.map(request, User.class);
@@ -33,6 +36,16 @@ public class AuthService {
 		}
 		
 		repo.save(user);
+		
+//		RabbitMQ
+		
+		emailPublisher.sendEmail(
+		        new EmailMessage(
+		            user.getEmail(),
+		            "Welcome to SmartSure",
+		            "Your account has been created successfully!"
+		        )
+		    );
 		
 		return "User registered successfully";
 	}
@@ -48,6 +61,16 @@ public class AuthService {
 		
 //		String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 		String token = jwtUtil.generateToken(user.getUserId(), user.getRole().name());
+		
+//		RabbitMQ
+		
+		emailPublisher.sendEmail(
+		        new EmailMessage(
+		            user.getEmail(),
+		            "Login Alert",
+		            "You have successfully logged in to Smart Sure."
+		        )
+		    );
 		return new AuthResponseDto(token, user.getEmail(), user.getRole().name());
 	}
 }

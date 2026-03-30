@@ -23,19 +23,21 @@ public class InternalRequestFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
     	
-    	if (request.getRequestURI().startsWith("/api/auth")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+    	String path = request.getRequestURI();
     	
-    	if (request.getRequestURI().startsWith("/actuator")) {
-    	    filterChain.doFilter(request, response);
-    	    return;
-    	}
+    	if (path.startsWith("/api/auth") ||
+    		    path.startsWith("/swagger-ui") ||
+    		    path.startsWith("/v3/api-docs") ||
+    		    path.equals("/swagger-ui.html") ||
+    		    path.startsWith("/actuator")) {
+
+    		    filterChain.doFilter(request, response);
+    		    return;
+    		}
     	
         String secret = request.getHeader("X-Internal-Secret");
 
-        if (!internalSecret.equals(secret)) {
+        if (secret == null ||!internalSecret.equals(secret)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }

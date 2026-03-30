@@ -27,10 +27,12 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
         String userId = request.getHeader("X-User-Id");
         String role = request.getHeader("X-User-Role");
         
-        if (request.getRequestURI().startsWith("/actuator")) {
-    	    filterChain.doFilter(request, response);
-    	    return;
-    	}
+        String path = request.getRequestURI();
+
+        if (path.contains("swagger") || path.contains("api-docs") || path.contains("actuator")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         
         if (userId != null && role != null) {
 
