@@ -12,12 +12,22 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -28,15 +38,22 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # -------------------- Config Server --------------------
   config-server-smart-sure:
-    build: ./CONFIG-SERVER-SMART-SURE
+    build: ./config-server-smart-sure
     container_name: config-server-smart-sure
     ports:
       - "8888:8888"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+    restart: always
 
   # -------------------- Eureka / Service Registry --------------------
   service-registry-smart-sure:
@@ -45,7 +62,9 @@ services:
     ports:
       - "8761:8761"
     depends_on:
-      - config-server-smart-sure
+      config-server-smart-sure:
+        condition: service_started
+    restart: always
 
   # -------------------- API Gateway --------------------
   api-gateway-smartsure:
@@ -54,7 +73,9 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - service-registry-smart-sure
+      service-registry-smart-sure:
+        condition: service_started
+    restart: always
 
   # -------------------- Microservices --------------------
   auth-service:
@@ -63,10 +84,15 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - service-registry-smart-sure
-      - mysql
-      - redis
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-registry-smart-sure:
+        condition: service_started
+    restart: always
 
   policy-service:
     build: ./PolicyService
@@ -74,32 +100,51 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - service-registry-smart-sure
-      - mysql
-      - redis
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-registry-smart-sure:
+        condition: service_started
+    restart: always
 
   claim-service:
-    build: ./ClaimService
+    build: ./claimService
     container_name: claim-service
     ports:
       - "8083:8083"
     depends_on:
-      - service-registry-smart-sure
-      - mysql
-      - redis
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-registry-smart-sure:
+        condition: service_started
+    volumes:
+      - ./claimService/target/claimService-0.0.1-SNAPSHOT.jar:/app/app.jar
+    restart: always
 
   admin-service:
-    build: ./AdminService
+    build: ./adminService
     container_name: admin-service
     ports:
       - "8084:8084"
     depends_on:
-      - service-registry-smart-sure
-      - mysql
-      - redis
-      - rabbitmq
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-registry-smart-sure:
+        condition: service_started
+    volumes:
+      - ./adminService/target/adminService-0.0.1-SNAPSHOT.jar:/app/app.jar
+    restart: always
 
   # -------------------- Zipkin --------------------
   zipkin:
@@ -107,6 +152,7 @@ services:
     container_name: zipkin
     ports:
       - "9411:9411"
+    restart: always
 
   # -------------------- Prometheus --------------------
   prometheus:
@@ -116,6 +162,7 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    restart: always
 
   # -------------------- Grafana --------------------
   grafana:
@@ -127,7 +174,9 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_started
+    restart: always
 
 # -------------------- Volumes --------------------
 volumes:
