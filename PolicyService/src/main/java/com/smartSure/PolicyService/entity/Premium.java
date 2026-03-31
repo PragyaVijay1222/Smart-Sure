@@ -54,7 +54,7 @@ public class Premium {
     private LocalDateTime createdAt;
 
     public enum PremiumStatus {
-        PENDING, PAID, OVERDUE, WAIVED
+        PENDING, PAYMENT_IN_PROGRESS, PAID, OVERDUE, WAIVED
     }
 
     public enum PaymentMethod {

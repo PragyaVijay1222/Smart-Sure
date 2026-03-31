@@ -20,6 +20,9 @@ import com.smartSure.PolicyService.repository.PolicyRepository;
 import com.smartSure.PolicyService.repository.PolicyTypeRepository;
 import com.smartSure.PolicyService.repository.PremiumRepository;
 import com.smartSure.PolicyService.client.AuthServiceClient;
+import com.smartSure.PolicyService.client.PaymentServiceClient;
+import com.smartSure.PolicyService.dto.client.PaymentInitiateRequest;
+import com.smartSure.PolicyService.dto.client.PaymentInitiateResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +52,7 @@ public class PolicyService {
     private final PolicyMapper           policyMapper;
     private final NotificationPublisher  notificationPublisher;
     private final AuthServiceClient      authServiceClient;
+    private final PaymentServiceClient   paymentServiceClient;
 
     // ═══════════════════════════════════════════════════════════
     // PURCHASE
@@ -302,8 +306,8 @@ public PolicyResponse purchasePolicy(Long customerId, PolicyPurchaseRequest requ
     // PREMIUM PAYMENT
     // ═══════════════════════════════════════════════════════════
 
-    // Marks a premium installment as PAID, auto-generates a reference if missing, and fires premium paid event
-    @CircuitBreaker(name = "policyTypeService", fallbackMethod = "payPremiumFallback")
+    // Marks a premium installment as PAYMENT_IN_PROGRESS and initiates a Razorpay order via PaymentService
+    @CircuitBreaker(name = "paymentService", fallbackMethod = "payPremiumFallback")
     @Transactional
     public PremiumResponse payPremium(Long customerId, PremiumPaymentRequest request) {
 
@@ -325,34 +329,30 @@ public PolicyResponse purchasePolicy(Long customerId, PolicyPurchaseRequest requ
             throw new IllegalStateException("Waived premiums cannot be paid");
         }
 
-        premium.setStatus(Premium.PremiumStatus.PAID);
-        premium.setPaidDate(LocalDate.now());
+        premium.setStatus(Premium.PremiumStatus.PAYMENT_IN_PROGRESS);
         premium.setPaymentMethod(request.getPaymentMethod());
-        premium.setPaymentReference(request.getPaymentReference() != null
-                ? request.getPaymentReference()
-                : "TXN-" + UUID.randomUUID().toString().substring(0, 8));
 
+        PaymentInitiateRequest initiateRequest = PaymentInitiateRequest.builder()
+                .policyId(policy.getId())
+                .premiumId(premium.getId())
+                .amount(premium.getAmount())
+                .paymentMethod(request.getPaymentMethod() != null ? request.getPaymentMethod().name() : null)
+                .build();
+
+        log.info("Initiating payment Saga for premiumId={} via PaymentService", premium.getId());
+        PaymentInitiateResponse paymentResponse = paymentServiceClient.initiatePayment(
+                String.valueOf(customerId),
+                initiateRequest
+        );
+
+        premium.setPaymentReference(paymentResponse.getRazorpayOrderId());
         Premium saved = premiumRepository.save(premium);
-//        saveAudit(policy.getId(), customerId, "CUSTOMER", "PREMIUM_PAID",
-//                Premium.PremiumStatus.PENDING.name(), Premium.PremiumStatus.PAID.name(),
-//                "Premium ID: " + premium.getId() + ", Ref: " + premium.getPaymentReference());
 
-        notificationPublisher.publishPremiumPaid(
-                PremiumPaidEvent.builder()
-                        .premiumId(saved.getId())
-                        .policyId(policy.getId())
-                        .policyNumber(policy.getPolicyNumber())
-                        .customerId(customerId)
-                        .customerEmail(getCustomerEmailSafely(customerId))
-                        .customerName("Customer")
-                        .amount(saved.getAmount())
-                        .paidDate(saved.getPaidDate())
-                        .paymentMethod(saved.getPaymentMethod() != null
-                                ? saved.getPaymentMethod().name() : null)
-                        .paymentReference(saved.getPaymentReference())
-                        .build());
+        PremiumResponse response = mapPremium(saved);
+        response.setRazorpayOrderId(paymentResponse.getRazorpayOrderId());
+        response.setRazorpayKeyId(paymentResponse.getRazorpayKeyId());
 
-        return mapPremium(saved);
+        return response;
     }
 
     // Circuit breaker fallback for payPremium — throws ServiceUnavailableException

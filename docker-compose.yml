@@ -48,6 +48,8 @@ services:
   config-server-smart-sure:
     build: ./config-server-smart-sure
     container_name: config-server-smart-sure
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
     ports:
       - "8888:8888"
     depends_on:
@@ -59,6 +61,8 @@ services:
   service-registry-smart-sure:
     build: ./ServiceRegistrySmartSure
     container_name: service-registry-smart-sure
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
     ports:
       - "8761:8761"
     depends_on:
@@ -70,6 +74,8 @@ services:
   api-gateway-smartsure:
     build: ./ApiGatewaySmartSure
     container_name: api-gateway-smartsure
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
     ports:
       - "8080:8080"
     depends_on:
@@ -81,6 +87,8 @@ services:
   auth-service:
     build: ./AuthService
     container_name: auth-service
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
     ports:
       - "8081:8081"
     depends_on:
@@ -97,6 +105,8 @@ services:
   policy-service:
     build: ./PolicyService
     container_name: policy-service
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
     ports:
       - "8082:8082"
     depends_on:
@@ -108,11 +118,35 @@ services:
         condition: service_healthy
       service-registry-smart-sure:
         condition: service_started
+    volumes:
+      - ./PolicyService/target/PolicyService-0.0.1-SNAPSHOT.jar:/app/app.jar
+    restart: always
+
+  payment-service:
+    build: ./paymentService
+    container_name: payment-service
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
+    ports:
+      - "8085:8085"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-registry-smart-sure:
+        condition: service_started
+    volumes:
+      - ./paymentService/target/paymentService-0.0.1-SNAPSHOT.jar:/app/app.jar
     restart: always
 
   claim-service:
     build: ./claimService
     container_name: claim-service
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
     ports:
       - "8083:8083"
     depends_on:
@@ -131,6 +165,8 @@ services:
   admin-service:
     build: ./adminService
     container_name: admin-service
+    environment:
+      - JAVA_OPTS=-Xmx256m -Xms256m
     ports:
       - "8084:8084"
     depends_on:
@@ -147,36 +183,36 @@ services:
     restart: always
 
   # -------------------- Zipkin --------------------
-  zipkin:
-    image: openzipkin/zipkin:2.27
-    container_name: zipkin
-    ports:
-      - "9411:9411"
-    restart: always
+#  zipkin:
+#    image: openzipkin/zipkin:2.27
+#    container_name: zipkin
+#    ports:
+#      - "9411:9411"
+#    restart: always
 
   # -------------------- Prometheus --------------------
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"
-    restart: always
+#  prometheus:
+#    image: prom/prometheus:latest
+#    container_name: prometheus
+#    volumes:
+#      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+#    ports:
+#      - "9090:9090"
+#    restart: always
 
   # -------------------- Grafana --------------------
-  grafana:
-    image: grafana/grafana:10.2.0
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    depends_on:
-      prometheus:
-        condition: service_started
-    restart: always
+#  grafana:
+#    image: grafana/grafana:10.2.0
+#    container_name: grafana
+#    ports:
+#      - "3000:3000"
+#    environment:
+#      - GF_SECURITY_ADMIN_USER=admin
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
+#    depends_on:
+#      prometheus:
+#        condition: service_started
+#    restart: always
 
 # -------------------- Volumes --------------------
 volumes:

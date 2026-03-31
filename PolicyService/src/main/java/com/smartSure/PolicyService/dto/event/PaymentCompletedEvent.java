@@ -1,11 +1,9 @@
-package com.smartSure.paymentService.dto;
+package com.smartSure.PolicyService.dto.event;
 
-import com.smartSure.paymentService.entity.Payment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -13,16 +11,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentResponse {
-    private Long id;
+public class PaymentCompletedEvent {
+    private Long paymentId;
     private Long policyId;
     private Long premiumId;
     private Long customerId;
     private BigDecimal amount;
-    private String status;
     private String paymentMethod;
-    private String razorpayOrderId;
     private String razorpayPaymentId;
-    private String razorpayKeyId;   
-    private LocalDateTime createdAt;
+    private LocalDateTime paidAt;
 }

@@ -18,4 +18,8 @@ public class PremiumResponse {
     private String status;
     private String paymentReference;
     private String paymentMethod;
+    
+    // Razorpay Integration Fields (returned when payment is initiated)
+    private String razorpayOrderId;
+    private String razorpayKeyId;
 }
